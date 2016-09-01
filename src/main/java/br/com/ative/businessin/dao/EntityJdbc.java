@@ -2,29 +2,74 @@ package br.com.ative.businessin.dao;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
+
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 @Service("entityJdbc")
 public class EntityJdbc {
 
-	private final JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 	
 	@Autowired
 	public EntityJdbc(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
+	
+	public void test3() {
+		try {
+			DataSource dataSource = jdbcTemplate.getDataSource();
+			Connection connection = dataSource.getConnection();
+			DatabaseMetaData dbMetaData = connection.getMetaData();
+			String catalog = getCatalog(connection,"test");
+			List<String> catalogs = getCatalogs(connection);
+//			catalogs.
+			
+//			BasicDataSource bds = new BasicDataSource();
+//			bds.setDriver(new MysqlConnection);
+			
+			System.out.println();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private String getCatalog(List<String> catalogs, String catalog) {
+		String c = catalogs.stream().filter(t -> t.equals(catalog)).findFirst().get();
+		return c;
+	}
+	
+	private String getCatalog(Connection conn, String catalog) throws SQLException {
+		List<String> catalogs = getCatalogs(conn);
+		return getCatalog(catalogs, catalog);
+	}
+	
+	private List<String> getCatalogs(Connection conn) throws SQLException {
+		List<String> catalogs = new ArrayList<>();
+		ResultSet rsCatalogs = conn.getMetaData().getCatalogs();
+		String dataBaseName = "";
+		while (rsCatalogs.next()) {
+			dataBaseName = rsCatalogs.getString(1);
+			System.out.println(dataBaseName);
+			catalogs.add(dataBaseName);
+		}
+		return catalogs;
+	}
+	
 	
 	public void test2() {
 		
@@ -38,33 +83,33 @@ public class EntityJdbc {
 			int transactionIsolation = connection.getTransactionIsolation();
 			Map<String, Class<?>> typeMap = connection.getTypeMap();
 			System.out.println();
+			
+//			DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource("jdbc:mysql://localhost:3306/test", "root", "");
+//			jdbcTemplate.setDataSource(driverManagerDataSource);
+			MysqlDataSource mysqlDataSource = new MysqlDataSource();
+			mysqlDataSource.setPassword("");
+//			mysqlDataSource.setPort(3306);
+			mysqlDataSource.setUrl("jdbc:mysql://localhost:3306");
+			mysqlDataSource.setServerName("test");
+			mysqlDataSource.setDatabaseName("test");
+			mysqlDataSource.setPortNumber(3306);
+			mysqlDataSource.setUser("root");
+			
+			DataSourceUtils.doCloseConnection(connection, jdbcTemplate.getDataSource());
+			jdbcTemplate = new JdbcTemplate(mysqlDataSource);
+			jdbcTemplate.setDataSource(mysqlDataSource);
+			DataSource dataSource2 = jdbcTemplate.getDataSource();
+			Connection doGetConnection = DataSourceUtils.doGetConnection(dataSource2);
+			Connection getConnection = DataSourceUtils.getConnection(dataSource2);
+			
+//			String catalog2 = getCatalog(jdbcTemplate.getDataSource().getConnection());
+//			String catalog3 = getCatalog(dataSource2.getConnection());
+//			String catalog4 = getCatalog(getConnection);
+//			String catalog5 = getCatalog(doGetConnection);
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public void test3() {
-		try {
-			DataSource dataSource = jdbcTemplate.getDataSource();
-			Connection connection = dataSource.getConnection();
-			DatabaseMetaData dbMetaData = connection.getMetaData();
-			ResultSet catalogs = dbMetaData.getCatalogs();
-			catalogs.next();
-			String string1 = catalogs.getString(1);
-			System.out.println();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private String getDataBaseName() throws SQLException {
-		DataSource dataSource = jdbcTemplate.getDataSource();
-		Connection connection = dataSource.getConnection();
-		DatabaseMetaData dbMetaData = connection.getMetaData();
-		ResultSet catalogs = dbMetaData.getCatalogs();
-		catalogs.next();
-		String dataBaseName = catalogs.getString(1);
-		return dataBaseName;
 	}
 	
 	public void test() {
