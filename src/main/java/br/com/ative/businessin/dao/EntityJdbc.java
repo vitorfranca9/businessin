@@ -35,8 +35,28 @@ public class EntityJdbc {
 			DataSource dataSource = jdbcTemplate.getDataSource();
 			Connection connection = dataSource.getConnection();
 			DatabaseMetaData dbMetaData = connection.getMetaData();
-			String catalog = getCatalog(connection,"test");
-			List<String> catalogs = getCatalogs(connection);
+			String catalog = getCatalog(connection, "test"); 
+			
+			ResultSet tables = dbMetaData.getTables("business-in", null, null, null); //TODO: continua conectando na 1a conexao definida
+			while (tables.next()) {
+				String ctlg = tables.getString(1);
+				String tableName = tables.getString(3);
+				String type = tables.getString(4);
+				String idk = tables.getString(5);
+				System.out.println(ctlg);
+				System.out.println(tableName);
+				System.out.println(type);
+				System.out.println(idk);
+//				Map<String, Object> queryMap = jdbcTemplate.queryForMap("select * from "+tableName); //unique result
+				List<Map<String, Object>> queryForList = jdbcTemplate.queryForList("select * from "+tableName);
+				for (Map<String, Object> queryMap : queryForList) {
+					for (String key : queryMap.keySet()) {
+						Object object = queryMap.get(key);
+						System.out.println(object);
+					}
+				}
+				System.out.println();
+			}
 //			catalogs.
 			
 //			BasicDataSource bds = new BasicDataSource();
@@ -64,8 +84,8 @@ public class EntityJdbc {
 		String dataBaseName = "";
 		while (rsCatalogs.next()) {
 			dataBaseName = rsCatalogs.getString(1);
-			System.out.println(dataBaseName);
 			catalogs.add(dataBaseName);
+//			System.out.println(dataBaseName);
 		}
 		return catalogs;
 	}
