@@ -8,8 +8,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Function;
 
 import javax.sql.DataSource;
 
@@ -19,6 +19,11 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+
+import br.com.ative.businessin.enums.ValueTypeEnum;
+import br.com.ative.businessin.vo.ColumnVO;
+import br.com.ative.businessin.vo.TableVO;
+import br.com.ative.businessin.vo.ValueVO;
 
 @Service("entityJdbc")
 public class EntityJdbc {
@@ -30,7 +35,7 @@ public class EntityJdbc {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 	
-	public void test3() {
+	public <T> void test3() {
 		try {
 			DataSource dataSource = jdbcTemplate.getDataSource();
 			Connection connection = dataSource.getConnection();
@@ -49,23 +54,46 @@ public class EntityJdbc {
 				System.out.println(idk);
 //				Map<String, Object> queryMap = jdbcTemplate.queryForMap("select * from "+tableName); //unique result
 				List<Map<String, Object>> queryForList = jdbcTemplate.queryForList("select * from "+tableName);
-				for (Map<String, Object> queryMap : queryForList) {
-					for (String key : queryMap.keySet()) {
-						Object object = queryMap.get(key);
-						System.out.println(object);
-					}
-				}
+				TableVO tableVO = fillTable(tableName, queryForList);
 				System.out.println();
 			}
-//			catalogs.
-			
-//			BasicDataSource bds = new BasicDataSource();
-//			bds.setDriver(new MysqlConnection);
-			
 			System.out.println();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private TableVO fillTable(String tableName, List<Map<String, Object>> queryForList) {
+		TableVO tableVO = new TableVO();
+		tableVO.setName(tableName);
+		tableVO.setValues(new ArrayList<>());
+		tableVO.setColumns(new ArrayList<>());
+		
+		for (Map<String, Object> queryMap : queryForList) {
+			ColumnVO columnVO = new ColumnVO();
+			for (String key : queryMap.keySet()) {
+				Optional<ColumnVO> optCol = tableVO.getColumns().stream().filter(c -> key.equals(c.getName())).findFirst();
+				if (optCol.isPresent()) {
+					columnVO = optCol.get();
+				} else {
+					//TODO columnVO.setType(null);
+					columnVO = new ColumnVO();
+					columnVO.setName(key);
+					columnVO.setTable(tableVO);
+					columnVO.setValues(new ArrayList<>());
+					tableVO.getColumns().add(columnVO);
+				}
+				Object object = queryMap.get(key);
+				ValueVO valueVO = new ValueVO();
+				valueVO.setType(ValueTypeEnum.getValueType(object));
+				valueVO.setValue(object);
+				valueVO.setColumn(columnVO);
+				columnVO.getValues().add(valueVO);
+//				tableVO.getValues().add(valueVO);
+				System.out.println(object);
+			}
+		}
+		return tableVO;
 	}
 	
 	private String getCatalog(List<String> catalogs, String catalog) {
