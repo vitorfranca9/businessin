@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd"
+	version="2.2">
+
+	<application>
+	    <el-resolver>org.springframework.web.jsf.el.SpringBeanFacesELResolver</el-resolver> 
+	    
+	    <!-- Spring View Scope -->
+	    <!-- <system-event-listener>
+		    <system-event-listener-class>br.com.ative.businessin.jsf.ViewScopeCallbackRegistrer</system-event-listener-class>
+		    <system-event-class>javax.faces.event.PostConstructViewMapEvent</system-event-class>
+		    <source-class>javax.faces.component.UIViewRoot</source-class>
+		</system-event-listener>
+		<system-event-listener>
+		    <system-event-listener-class>br.com.ative.businessin.jsf.ViewScopeCallbackRegistrer</system-event-listener-class>
+		    <system-event-class>javax.faces.event.PreDestroyViewMapEvent</system-event-class>
+		    <source-class>javax.faces.component.UIViewRoot</source-class>
+		</system-event-listener> -->
+	    
+	</application> 
+
+	<lifecycle>
+	    <phase-listener>org.springframework.web.jsf.DelegatingPhaseListenerMulticaster</phase-listener>
+	</lifecycle> 
+	<!-- <lifecycle>
+		<phase-listener>br.com.ative.businessin.JSFPhaseListener</phase-listener>
+	</lifecycle> -->
+
+</faces-config>
